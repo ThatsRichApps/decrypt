@@ -2,7 +2,7 @@
  * decrypt.c
  *
  *  Created on: Mar 7, 2017
- *      Author: RJHumphrey
+ *      Author: Richard Humphrey
  */
 
 
@@ -287,7 +287,7 @@ char *columnar_transposition_decrypt (char *buff, char *key, int bufferlength) {
 			int emap = encryption_map[map];
 			//printf ("reading from column %i, row %i - emap = %i - \n", map, j, emap);
 
-			if ((j != (colsize - 1)) || (emap < remainder)) {
+			if ((remainder== 0) ||(j != (colsize - 1)) || (emap < remainder)) {
 
 				bitposition = location % 8;
 
