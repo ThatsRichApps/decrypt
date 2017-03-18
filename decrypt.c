@@ -74,7 +74,6 @@ char *validate_key(char *key) {
 char *decrypt_vigenere (char *buff, char *key, int bufferlength) {
 
 	char *decrypted;
-
 	decrypted =(char *)malloc(sizeof(char) * bufferlength);
 
 	// Do a bitwise vigenere decryption with key
@@ -171,11 +170,12 @@ int *encrypt_map (char *key) {
 	}
 	//printf ("\n");
 
+	/* Debug:
 	for (int j = 0; j < KEYWORDSIZE; j++) {
 		printf ("%i ", key_map[j]);
 	}
 	printf ("\n");
-
+	*/
 
 	return (key_map);
 
@@ -199,11 +199,11 @@ char *columnar_transposition_decrypt (char *buff, char *key, int bufferlength) {
 		colsize++;
 	}
 
-	printf ("bufflength: %i\n", bufferlength );
-	printf ("bits: %i\n", bitbufferlength );
-	printf ("keywordsize: %i\n", KEYWORDSIZE);
-	printf ("colsize: %i\n", colsize);
-	printf ("remainder: %i\n", remainder);
+	//printf ("bufflength: %i\n", bufferlength );
+	//printf ("bits: %i\n", bitbufferlength );
+	//printf ("keywordsize: %i\n", KEYWORDSIZE);
+	//printf ("colsize: %i\n", colsize);
+	//printf ("remainder: %i\n", remainder);
 
 	int *columns[KEYWORDSIZE];
 
@@ -214,12 +214,6 @@ char *columnar_transposition_decrypt (char *buff, char *key, int bufferlength) {
 	// get the key mapping for decryption
 	int *column_map = decrypt_map(key);
 	int *encryption_map = encrypt_map(key);
-
-	// print the key map for debug
-	for (int i = 0; i < KEYWORDSIZE; i++) {
-		printf("%i ", column_map[i]);
-	}
-	printf ("\n");
 
 	int i = 0;
 	int bitlocation = 0;
@@ -293,7 +287,7 @@ char *columnar_transposition_decrypt (char *buff, char *key, int bufferlength) {
 
 				bitposition = location % 8;
 
-				printf ("%i ", columns[map][j]);
+				//printf ("%i ", columns[map][j]);
 				//printf ("- reading from column %i, row %i - emap = %i\n", map, j, emap);
 
 				ch |= columns[map][j];
@@ -301,7 +295,7 @@ char *columnar_transposition_decrypt (char *buff, char *key, int bufferlength) {
 				if (bitposition == 7) {
 					//printf (" - ");
 					//printf ("appending %c to transposed: in position %i %s\n", ch, chlocation, transposed);
-					printf ("\n");
+					//printf ("\n");
 					transposed[chlocation] = ch;
 					chlocation++;
 					transposed[chlocation] = '\0';
@@ -314,7 +308,7 @@ char *columnar_transposition_decrypt (char *buff, char *key, int bufferlength) {
 		}
 
 	}
-	printf("\n");
+	//printf("\n");
 
 	return transposed;
 
@@ -337,130 +331,128 @@ int main (int argc, char **argv) {
 	int c;
 	int verbose = 0;
 
-	printf ("Program: decrypt\n");
-
 	if (argc == 1) {
 			printf("Error: Provide binary filename and keys.\n");
 			print_try_help();
 			exit(0);
+	}
+
+	while ((c = getopt (argc, argv, "hv")) != -1) {
+		// Option argument
+		switch (c) {
+		case 'h':
+			print_help();
+			exit(1);
+		case 'v':
+			verbose = 1;
+			break;
+		default:
+			break;
 		}
+	}
 
-		while ((c = getopt (argc, argv, "hv")) != -1) {
-			// Option argument
-			switch (c) {
-			case 'h':
-				print_help();
-				exit(1);
-			case 'v':
-				verbose = 1;
-				break;
-			default:
-				break;
-			}
-		}
+	// ciphertext file should be non option argument
+	ciphertext_file = argv[optind];
 
-		// ciphertext file should be non option argument
-		ciphertext_file = argv[optind];
+	if (!ciphertext_file) {
+		printf("Error: Provide the name of the file to decrypt.\n");
+		print_try_help();
+		exit(0);
+	}
 
-		if (!ciphertext_file) {
-			printf("Error: Provide the name of the file to decrypt.\n");
-			print_try_help();
-			exit(0);
-		}
+	optind++;
 
-		optind++;
+	// key1 should be non option argument
+	key1 = argv[optind];
 
-		// key1 should be non option argument
-		key1 = argv[optind];
+	if (!key1) {
+		printf("Error: Provide key1.\n");
+		print_try_help();
+		exit(0);
+	}
+	optind++;
 
-		if (!key1) {
-			printf("Error: Provide key1.\n");
-			print_try_help();
-			exit(0);
-		}
-		optind++;
+	// key2 file should be non option argument
+	key2 = argv[optind];
 
-		// key2 file should be non option argument
-		key2 = argv[optind];
+	if (!key2) {
+		printf("Error: Provide key2.\n");
+		print_try_help();
+		exit(0);
+	}
 
-		if (!key2) {
-			printf("Error: Provide key2.\n");
-			print_try_help();
-			exit(0);
-		}
+	if (verbose) { printf ("Opening file: %s\n", ciphertext_file); }
+	//printf ("key1: %s\n", key1);
+	//printf ("key2: %s\n", key2);
 
-		printf ("file: %s\n", ciphertext_file);
-		//printf ("key1: %s\n", key1);
-		//printf ("key2: %s\n", key2);
+	// test keys for appropriate length
+	char *k1 = validate_key(key1);
+	char *k2 = validate_key(key2);
 
-		// test keys for appropriate length
-		char *k1 = validate_key(key1);
-		char *k2 = validate_key(key2);
+	if (k1 == NULL) {
+		printf("Key 1 is too short, must be %i unique characters (A-Z).\n", KEYWORDSIZE);
+		print_try_help();
+		exit(0);
+	}
 
-		if (k1 == NULL) {
-			printf("Key 1 is too short, must be %i unique characters (A-Z).\n", KEYWORDSIZE);
-			print_try_help();
-			exit(0);
-		}
+	if (k2 == NULL) {
+		printf("Key 2 is too short, must be %i unique characters (A-Z).\n", KEYWORDSIZE);
+		print_try_help();
+		exit(0);
+	}
 
-		if (k2 == NULL) {
-			printf("Key 2 is too short, must be %i unique characters (A-Z).\n", KEYWORDSIZE);
-			print_try_help();
-			exit(0);
-		}
+	// Read from the binary file into a buffer
+	char *buffer;
+	unsigned long fileLen;
 
-		printf ("k1 = %s\n", k1);
-		printf ("k2 = %s\n", k2);
+	// Open the file
+	FILE *fp = fopen(ciphertext_file,"rb");
+	if(!fp) {
+		printf ("Unable to open file.\n");
+		return 0;
+	}
 
-		// Read from the binary file into a buffer
-		char *buffer;
-		unsigned long fileLen;
+	// Get file length
+	fseek(fp, 0, SEEK_END);
+	fileLen=ftell(fp);
+	fseek(fp, 0, SEEK_SET);
 
-		//Open the file
-		FILE *fp = fopen(ciphertext_file,"rb");
-		if(!fp) {
-			printf ("Unable to read file");
-			return 0;
-		}
-
-		//Get file length
-		fseek(fp, 0, SEEK_END);
-		fileLen=ftell(fp);
-		fseek(fp, 0, SEEK_SET);
-
-		//Allocate memory
-		buffer=(char *)malloc(fileLen);
-		if (!buffer) {
-			printf("Memory error!");
-	        fclose(fp);
-			return 0;
-		}
-
-		//Read file entire contents into buffer
-		fread(buffer, fileLen, 1, fp);
+	//Allocate memory
+	buffer=(char *)malloc(fileLen);
+	if (!buffer) {
+		printf("Memory error, unable to allocate buffer.\n");
 		fclose(fp);
+		return 0;
+	}
 
-		char *first_transpo = columnar_transposition_decrypt(buffer, k2, fileLen);
+	// Read file entire contents into buffer
+	fread(buffer, fileLen, 1, fp);
+	fclose(fp);
 
-		free(buffer);
+	// Do columnar decryption on key k2
+	if (verbose) { printf ("Performing transposition decryption on key %s\n", k2); }
+	char *first_transpo = columnar_transposition_decrypt(buffer, k2, fileLen);
+	free(buffer);
 
-		char *second_transpo = columnar_transposition_decrypt(first_transpo, k1, fileLen);
+	// Do columnar decryption on key k1
+	if (verbose) { printf ("Performing transposition decryption on key %s\n", k1); }
+	char *second_transpo = columnar_transposition_decrypt(first_transpo, k1, fileLen);
+	free(first_transpo);
 
-		free(first_transpo);
+	// decrypt the buffer with key1
+	if (verbose) { printf ("Performing Vigenere decryption on key %s\n", k1); }
+	char *last_decryption = decrypt_vigenere(second_transpo, k1, fileLen);
+	free(second_transpo);
 
-		// decrypt the buffer with key1
-		char *last_decryption = decrypt_vigenere(second_transpo, k1, fileLen);
-		free(second_transpo);
+	// write to output file
+	char *output_filename = "Richard-Humphrey-decrypted-str";
+	if (verbose) { printf ("Writing encryption to file %s\n", output_filename); }
+	FILE *wp;
+	wp = fopen(output_filename,"wb");
+	fwrite(last_decryption,fileLen,1,wp);
+	fclose(wp);
 
-		printf ("final decryption = %s", last_decryption);
-
-		// write to output file
-
-		char *output_filename = "decrypted";
-		FILE *wp;
-		wp = fopen(output_filename,"wb");
-		fwrite(last_decryption,fileLen,1,wp);
-		fclose(wp);
+	printf ("Decryption complete\n");
 
 }
 
