@@ -335,6 +335,7 @@ int main (int argc, char **argv) {
 	char *key1;
 	char *key2;
 	int c;
+	int verbose = 0;
 
 	printf ("Program: decrypt\n");
 
@@ -344,12 +345,15 @@ int main (int argc, char **argv) {
 			exit(0);
 		}
 
-		while ((c = getopt (argc, argv, "h")) != -1) {
+		while ((c = getopt (argc, argv, "hv")) != -1) {
 			// Option argument
 			switch (c) {
 			case 'h':
 				print_help();
 				exit(1);
+			case 'v':
+				verbose = 1;
+				break;
 			default:
 				break;
 			}
